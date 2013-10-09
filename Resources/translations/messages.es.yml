@@ -1,7 +1,7 @@
 ali:
     common:
         action: Acciones
-        confirm_delete: "Est seguro(a) que desea eliminar esta entrada?"
+        confirm_delete: "¿Está seguro(a) que desea eliminar esta entrada?"
         delete: borrar
         edit: editar
         no_action: "-"
@@ -17,5 +17,5 @@ ali:
         sPrevious: Anterior
         sProcessing: Cargando...
         sSearch: "Buscar:"
-        sZeroRecords: "No se encontr ninguna entrada"
+        sZeroRecords: "No se encontó ninguna entrada"
         search: "búsqueda"

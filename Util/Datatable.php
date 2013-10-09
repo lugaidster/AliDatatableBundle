@@ -1,18 +1,21 @@
 <?php
 
-namespace Ali\DatatableBundle\Util;
+namespace Lugaidster\DatatableBundle\Util;
 
 use Symfony\Component\DependencyInjection\ContainerInterface,
     Symfony\Component\HttpFoundation\Response;
 use Doctrine\ORM\Query,
     Doctrine\ORM\Query\Expr\Join;
-use Ali\DatatableBundle\Util\Factory\Query\QueryInterface,
-    Ali\DatatableBundle\Util\Factory\Query\DoctrineBuilder,
-    Ali\DatatableBundle\Util\Formatter\Renderer,
-    Ali\DatatableBundle\Util\Factory\Prototype\PrototypeBuilder;
+use Lugaidster\DatatableBundle\Util\Factory\Query\QueryInterface,
+    Lugaidster\DatatableBundle\Util\Factory\Query\DoctrineBuilder,
+    Lugaidster\DatatableBundle\Util\Formatter\Renderer,
+    Lugaidster\DatatableBundle\Util\Factory\Prototype\PrototypeBuilder;
 
 class Datatable
 {
+    const NO_SEARCH = 0;
+    const GLOBAL_SEARCH = 1;
+    const PER_FIELD_SEARCH = 2;
 
     /** @var array */
     protected $_fixed_data = NULL;
@@ -35,7 +38,7 @@ class Datatable
     /** @var array */
     protected $_multiple;
 
-    /** @var \Ali\DatatableBundle\Util\Factory\Query\QueryInterface */
+    /** @var \Lugaidster\DatatableBundle\Util\Factory\Query\QueryInterface */
     protected $_queryBuilder;
 
     /** @var \Symfony\Component\HttpFoundation\Request */
@@ -50,12 +53,12 @@ class Datatable
     /** @var Renderer */
     protected $_renderer_obj = null;
 
-    /** @var boolean */
+    /** @var int */
     protected $_search;
 
     /** @var array */
     protected $_search_fields = array();
-    
+
     /** @var array */
     protected static $_instances = array();
 
@@ -63,14 +66,14 @@ class Datatable
     protected static $_current_instance = NULL;
 
     /**
-     * class constructor 
-     * 
-     * @param ContainerInterface $container 
+     * class constructor
+     *
+     * @param ContainerInterface $container
      */
     public function __construct(ContainerInterface $container)
     {
         $this->_container   = $container;
-        $this->_config      = $this->_container->getParameter('ali_datatable');
+        $this->_config      = $this->_container->getParameter('lugaidster_datatable');
         $this->_em          = $this->_container->get('doctrine.orm.entity_manager');
         $this->_request      = $this->_container->get('request');
         $this->_queryBuilder = new DoctrineBuilder($container);
@@ -80,7 +83,7 @@ class Datatable
 
     /**
      * apply default value from datatable config
-     * 
+     *
      * @return void
      */
     protected function _applyDefaults()
@@ -88,26 +91,28 @@ class Datatable
         if (isset($this->_config['all']))
         {
             $this->_has_action = $this->_config['all']['action'];
-            $this->_search     = $this->_config['all']['search'];
+            $this->_search     = $this->_config['all']['search'] == 'none' ? Datatable::NO_SEARCH :
+                                    $this->_config['all']['search'] == 'both' ? Datatable::GLOBAL_SEARCH | Datatable::PER_FIELD_SEARCH :
+                                        $this->_config['all']['search'] == 'global' ? Datatable::GLOBAL_SEARCH : Datatable::PER_FIELD_SEARCH;
         }
     }
 
     /**
      * add join
-     * 
+     *
      * @example:
-     *      ->setJoin( 
-     *              'r.event', 
-     *              'e', 
-     *              \Doctrine\ORM\Query\Expr\Join::INNER_JOIN, 
-     *              'e.name like %test%') 
-     * 
+     *      ->setJoin(
+     *              'r.event',
+     *              'e',
+     *              \Doctrine\ORM\Query\Expr\Join::INNER_JOIN,
+     *              'e.name like %test%')
+     *
      * @param string $join_field
      * @param string $alias
      * @param string $type
      * @param string $cond
-     * 
-     * @return Datatable 
+     *
+     * @return Datatable
      */
     public function addJoin($join_field, $alias, $type = Join::INNER_JOIN, $cond = '')
     {
@@ -117,10 +122,10 @@ class Datatable
 
     /**
      * execute
-     * 
+     *
      * @param int $hydration_mode
-     * 
-     * @return Response 
+     *
+     * @return Response
      */
     public function execute($hydration_mode = Query::HYDRATE_ARRAY)
     {
@@ -167,9 +172,9 @@ class Datatable
     /**
      * get datatable instance by id
      *  return current instance if null
-     * 
+     *
      * @param string $id
-     * 
+     *
      * @return Datatable .
      */
     public static function getInstance($id)
@@ -195,7 +200,7 @@ class Datatable
 
     /**
      * get entity name
-     * 
+     *
      * @return string
      */
     public function getEntityName()
@@ -205,7 +210,7 @@ class Datatable
 
     /**
      * get entity alias
-     * 
+     *
      * @return string
      */
     public function getEntityAlias()
@@ -215,7 +220,7 @@ class Datatable
 
     /**
      * get fields
-     * 
+     *
      * @return array
      */
     public function getFields()
@@ -225,7 +230,7 @@ class Datatable
 
     /**
      * get has_action
-     * 
+     *
      * @return boolean
      */
     public function getHasAction()
@@ -235,7 +240,7 @@ class Datatable
 
     /**
      * retrun true if the actions column is overridden by twig renderer
-     * 
+     *
      * @return boolean
      */
     public function getHasRendererAction()
@@ -255,7 +260,7 @@ class Datatable
 
     /**
      * get order type
-     * 
+     *
      * @return string
      */
     public function getOrderType()
@@ -267,8 +272,8 @@ class Datatable
      * create raw prototype
      *
      * @param string $type
-     * 
-     * @return PrototypeBuilder 
+     *
+     * @return PrototypeBuilder
      */
     public function getPrototype($type)
     {
@@ -277,7 +282,7 @@ class Datatable
 
     /**
      * get query builder
-     * 
+     *
      * @return QueryInterface
      */
     public function getQueryBuilder()
@@ -287,7 +292,7 @@ class Datatable
 
     /**
      * get search
-     * 
+     *
      * @return boolean
      */
     public function getSearch()
@@ -297,11 +302,11 @@ class Datatable
 
     /**
      * set entity
-     * 
+     *
      * @param type $entity_name
      * @param type $entity_alias
-     * 
-     * @return Datatable 
+     *
+     * @return Datatable
      */
     public function setEntity($entity_name, $entity_alias)
     {
@@ -311,10 +316,10 @@ class Datatable
 
     /**
      * set fields
-     * 
+     *
      * @param array $fields
-     * 
-     * @return Datatable 
+     *
+     * @return Datatable
      */
     public function setFields(array $fields)
     {
@@ -324,9 +329,9 @@ class Datatable
 
     /**
      * set has action
-     * 
+     *
      * @param type $has_action
-     * 
+     *
      * @return Datatable
      */
     public function setHasAction($has_action)
@@ -337,11 +342,11 @@ class Datatable
 
     /**
      * set order
-     * 
+     *
      * @param type $order_field
      * @param type $order_type
-     * 
-     * @return Datatable 
+     *
+     * @return Datatable
      */
     public function setOrder($order_field, $order_type)
     {
@@ -351,10 +356,10 @@ class Datatable
 
     /**
      * set fixed data
-     * 
+     *
      * @param type $data
-     * 
-     * @return Datatable 
+     *
+     * @return Datatable
      */
     public function setFixedData($data)
     {
@@ -364,8 +369,8 @@ class Datatable
 
     /**
      * set query builder
-     * 
-     * @param QueryInterface $queryBuilder 
+     *
+     * @param QueryInterface $queryBuilder
      */
     public function setQueryBuilder(QueryInterface $queryBuilder)
     {
@@ -374,12 +379,12 @@ class Datatable
 
     /**
      * set a php closure as renderer
-     * 
+     *
      * @example:
-     * 
+     *
      *  $controller_instance = $this;
      *  $datatable = $this->get('datatable')
-     *       ->setEntity("AliBaseBundle:Entity", "e")
+     *       ->setEntity("LugaidsterBaseBundle:Entity", "e")
      *       ->setFields($fields)
      *       ->setOrder("e.created", "desc")
      *       ->setRenderer(
@@ -391,7 +396,7 @@ class Datatable
      *                       {
      *                           $data[$key] = $controller_instance
      *                               ->get('templating')
-     *                               ->render('AliBaseBundle:Entity:_decorator.html.twig',
+     *                               ->render('LugaidsterBaseBundle:Entity:_decorator.html.twig',
      *                                       array(
      *                                           'data' => $value
      *                                       )
@@ -401,10 +406,10 @@ class Datatable
      *               }
      *         )
      *       ->setHasAction(true);
-     * 
+     *
      * @param \Closure $renderer
-     * 
-     * @return Datatable 
+     *
+     * @return Datatable
      */
     public function setRenderer(\Closure $renderer)
     {
@@ -414,9 +419,9 @@ class Datatable
 
     /**
      * set renderers as twig views
-     * 
+     *
      * @example: To override the actions column
-     * 
+     *
      *      ->setFields(
      *          array(
      *             "field label 1" => 'x.field1',
@@ -427,7 +432,7 @@ class Datatable
      *      ->setRenderers(
      *          array(
      *             2 => array(
-     *               'view' => 'AliDatatableBundle:Renderers:_actions.html.twig',
+     *               'view' => 'LugaidsterDatatableBundle:Renderers:_actions.html.twig',
      *               'params' => array(
      *                  'edit_route'    => 'matche_edit',
      *                  'delete_route'  => 'matche_delete',
@@ -436,10 +441,10 @@ class Datatable
      *             ),
      *          )
      *       )
-     * 
+     *
      * @param array $renderers
-     * 
-     * @return Datatable 
+     *
+     * @return Datatable
      */
     public function setRenderers(array $renderers)
     {
@@ -458,11 +463,11 @@ class Datatable
 
     /**
      * set query where
-     * 
+     *
      * @param string $where
      * @param array  $params
-     * 
-     * @return Datatable 
+     *
+     * @return Datatable
      */
     public function setWhere($where, array $params = array())
     {
@@ -472,21 +477,21 @@ class Datatable
 
     /**
      * set query group
-     * 
+     *
      * @param string $groupbywhere
-     * 
-     * @return Datatable 
+     *
+     * @return Datatable
      */
     public function setGroupBy($groupby) {
         $this->_queryBuilder->setGroupBy($groupby);
         return $this;
     }
-    
+
     /**
      * set search
-     * 
-     * @param bool $search
-     * 
+     *
+     * @param int $search
+     *
      * @return Datatable
      */
     public function setSearch($search)
@@ -498,10 +503,10 @@ class Datatable
 
     /**
      * set datatable identifier
-     * 
+     *
      * @param string $id
-     * 
-     * @return Datatable 
+     *
+     * @return Datatable
      */
     public function setDatatableId($id)
     {
@@ -518,7 +523,7 @@ class Datatable
 
     /**
      * get multiple
-     * 
+     *
      * @return array
      */
     public function getMultiple()
@@ -528,14 +533,14 @@ class Datatable
 
     /**
      * set multiple
-     * 
+     *
      * @example
-     * 
+     *
      *  ->setMultiple('delete' => array ('title' => "Delete", 'route' => 'route_to_delete' ));
-     * 
+     *
      * @param array $multiple
-     * 
-     * @return \Ali\DatatableBundle\Util\Datatable
+     *
+     * @return \Lugaidster\DatatableBundle\Util\Datatable
      */
     public function setMultiple(array $multiple)
     {
@@ -544,18 +549,18 @@ class Datatable
     }
 
     /**
-     * get global configuration ( read it from config.yml under ali_datatable)
-     * 
+     * get global configuration ( read it from config.yml under lugaidster_datatable)
+     *
      * @return array
      */
     public function getConfiguration()
     {
         return $this->_config;
     }
-    
+
     /**
      * get search field
-     * 
+     *
      * @return array
      */
     public function getSearchFields()
@@ -565,21 +570,18 @@ class Datatable
 
     /**
      * set search fields
-     * 
-     * @example 
-     * 
+     *
+     * @example
+     *
      *      ->setSearchFields(array(0,2,5))
-     * 
+     *
      * @param array $search_fields
-     * 
-     * @return \Ali\DatatableBundle\Util\Datatable
+     *
+     * @return \Lugaidster\DatatableBundle\Util\Datatable
      */
     public function setSearchFields(array $search_fields)
     {
         $this->_search_fields = $search_fields;
         return $this;
     }
-
-
-    
 }

@@ -1,5 +1,5 @@
 parameters:
-    datatable.class: Ali\DatatableBundle\Util\Datatable
+    datatable.class: Lugaidster\DatatableBundle\Util\Datatable
 
 services:
     datatable:
@@ -8,7 +8,7 @@ services:
         scope: prototype
         
     datatable.twig.extension:
-        class: Ali\DatatableBundle\Twig\Extension\AliDatatableExtension
+        class: Lugaidster\DatatableBundle\Twig\Extension\LugaidsterDatatableExtension
         arguments: [ @service_container ]
         tags:
             -  { name: twig.extension }

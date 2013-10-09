@@ -1,14 +1,14 @@
 {
-    "name": "ali/datatable",
+    "name": "lugaidster/datatable",
     "description": "Symfony2 Ajax Datagrid Bundle for doctrine2 entities",
     "keywords": ["symfony2","jquery","datatable"],
-    "homepage": "https://github.com/AliHichem/AliDatatableBundle",
+    "homepage": "https://github.com/lugaidster/LugaidsterDatatableBundle",
     "license": "MIT",
     "type": "library",
     "authors": [
         {
-            "name": "Ali hichem",
-            "email": "ali.hichem@mail.com",
+            "name": "Alberto Simón Francés",
+            "email": "lugaidster@gmail.com",
             "role": "Developer"
         }
     ],
@@ -17,10 +17,10 @@
 	"twig/twig": ">=1.8,<2.0-dev",
         "doctrine/common": ">=2.1,<2.4.x-dev"
     },
-    "target-dir": "Ali/DatatableBundle",
+    "target-dir": "Lugaidster/DatatableBundle",
     "autoload": {
         "psr-0": {
-            "Ali\\DatatableBundle": ""
+            "Lugaidster\\DatatableBundle": ""
         }
     }
 }

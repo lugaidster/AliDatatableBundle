@@ -1,5 +1,11 @@
-<form action="{{ path(delete_route , { 'id': dt_item }) }}" method="post" style="float:right">
-    {{ delete_form_prototype | replace ({'@id':dt_item}) | raw  }}
-    <a class="button-delete" href="#" type="submit">Delete</a>
-</form>
-<a href="{{ path(edit_route,{'id':dt_item}) }}">edit</a>
+{% set delete_form = {
+    'form': {
+        'id': dt_id,
+        '_token': delete_token
+    }
+} | url_encode %}
+<div class="btn-group" style="min-width: 117px">
+    <a class="btn btn-default btn-xs" href="{{ path(show_route, { 'id': dt_id }) }}">View</a>
+    <a class="btn btn-default btn-xs" href="{{ path(edit_route, { 'id': dt_id }) }}">Edit</a>
+    <button type="button" class="btn btn-danger btn-xs button-delete" data-action="{{ path(delete_route) }}" data-form="{{ delete_form }}">Delete</button>
+</div>
