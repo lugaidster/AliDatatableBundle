@@ -1,11 +1,13 @@
+{% if delete_route is defined %}
 {% set delete_form = {
     'form': {
         'id': dt_id,
         '_token': delete_token
     }
 } | url_encode %}
+{% endif %}
 <div class="btn-group" style="min-width: 117px">
-    <a class="btn btn-default btn-xs" href="{{ path(show_route, { 'id': dt_id }) }}">View</a>
-    <a class="btn btn-default btn-xs" href="{{ path(edit_route, { 'id': dt_id }) }}">Edit</a>
-    <button type="button" class="btn btn-danger btn-xs button-delete" data-action="{{ path(delete_route) }}" data-form="{{ delete_form }}">Delete</button>
+    {% if show_route is defined %}<a class="btn btn-default btn-xs" href="{{ path(show_route, { 'id': dt_id }) }}">View</a>{% endif %}
+    {% if edit_route is defined %}<a class="btn btn-default btn-xs" href="{{ path(edit_route, { 'id': dt_id }) }}">Edit</a>{% endif %}
+    {% if delete_route is defined %}<button type="button" class="btn btn-danger btn-xs button-delete" data-action="{{ path(delete_route) }}" data-form="{{ delete_form }}">Delete</button>{% endif %}
 </div>
