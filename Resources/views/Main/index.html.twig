@@ -59,7 +59,7 @@
             <label style="margin-right: 10px">\
                 <div class="btn-group">\
                     {% for key,item in multiple %}\
-                     <button class="{{item.class|default('')}} btn-datatable-multiple" data-action="{{ path(item.route) }}">{{item.title}}</button>\
+                     <button class="{{item.class|default('')}} btn-datatable-multiple" data-action="{{ path(item.route) }}" data-loading-text="Loading...">{{item.title}}</button>\
                     {% endfor %}\
                 </div>\
             </label>\
@@ -181,6 +181,8 @@
         var chbox =  'input:checkbox[name="dataTables[actions][]"]';
         var chbox_all = 'input:checkbox[name="datatable_action_all"]';
         $(s).on('click','.btn-datatable-multiple:not(.search_init)',function(e){
+            var $btn = $(this);
+            var notify = null;
             if($('input:focus',$(s)).length > 0){
                 return false;
             }
@@ -192,18 +194,28 @@
                         return;
 
                     var form = $this.parents('form:eq(0)');
-                    var action = $('select[name="dataTables[select]"]',$(s)).val();
+                    var action = $btn.data('action');
                     $.ajax({
                         type: "POST",
                         url: action,
                         data: form.serialize(),
-                        success: function(msg) {
+                        dataType: 'json',
+                        success: function(data) {
                             $('#'+getId()).dataTable().fnDraw();
-                            $.unblockpage();
+                            $btn.button('reset');
+                            notify.pnotify({
+                                title: data.title,
+                                text: data.text,
+                                hide: true,
+                                type: data.type
+                            });
                         },
                         beforeSend: function() {
-                            $.blockpage({
-                                msg: 'saving data'
+                            $btn.button('loading');
+                            notify = $.pnotify({
+                                title: 'Please wait',
+                                text: 'Operation in progress...',
+                                hide: false
                             });
                         }
                     });
