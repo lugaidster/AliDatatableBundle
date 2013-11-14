@@ -49,7 +49,7 @@ class LugaidsterDatatableExtension extends \Twig_Extension
         $index = array_search($orderField, $names);
 
         if($index !== false)
-            return $index + $datatable->hasMultiple() ? 1 : 0;
+            return $index + ($hasMultiple ? 1 : 0);
         else
             return null;
     }

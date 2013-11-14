@@ -2,14 +2,14 @@
 
 namespace Lugaidster\DatatableBundle\Util;
 
-use Symfony\Component\DependencyInjection\ContainerInterface,
-    Symfony\Component\HttpFoundation\Response;
-use Doctrine\ORM\Query,
-    Doctrine\ORM\Query\Expr\Join;
-use Lugaidster\DatatableBundle\Util\Factory\Query\QueryInterface,
-    Lugaidster\DatatableBundle\Util\Factory\Query\DoctrineBuilder,
-    Lugaidster\DatatableBundle\Util\Formatter\Renderer,
-    Lugaidster\DatatableBundle\Util\Factory\Prototype\PrototypeBuilder;
+use Doctrine\ORM\Query;
+use Doctrine\ORM\Query\Expr\Join;
+use Lugaidster\DatatableBundle\Util\Factory\Prototype\PrototypeBuilder;
+use Lugaidster\DatatableBundle\Util\Factory\Query\DoctrineBuilder;
+use Lugaidster\DatatableBundle\Util\Factory\Query\QueryInterface;
+use Lugaidster\DatatableBundle\Util\Formatter\Renderer;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\Response;
 
 class Datatable
 {
@@ -18,7 +18,7 @@ class Datatable
     const PER_FIELD_SEARCH = 2;
 
     /** @var array */
-    protected $_fixed_data = NULL;
+    protected $_fixed_data = null;
 
     /** @var array */
     protected $_config;
@@ -45,10 +45,10 @@ class Datatable
     protected $_request;
 
     /** @var closure */
-    protected $_renderer = NULL;
+    protected $_renderer = null;
 
     /** @var array */
-    protected $_renderers = NULL;
+    protected $_renderers = null;
 
     /** @var Renderer */
     protected $_renderer_obj = null;
@@ -63,7 +63,7 @@ class Datatable
     protected static $_instances = array();
 
     /** @var Datatable */
-    protected static $_current_instance = NULL;
+    protected static $_current_instance = null;
 
     /**
      * class constructor
@@ -72,10 +72,10 @@ class Datatable
      */
     public function __construct(ContainerInterface $container)
     {
-        $this->_container   = $container;
-        $this->_config      = $this->_container->getParameter('lugaidster_datatable');
-        $this->_em          = $this->_container->get('doctrine.orm.entity_manager');
-        $this->_request      = $this->_container->get('request');
+        $this->_container = $container;
+        $this->_config = $this->_container->getParameter('lugaidster_datatable');
+        $this->_em = $this->_container->get('doctrine.orm.entity_manager');
+        $this->_request = $this->_container->get('request');
         $this->_queryBuilder = new DoctrineBuilder($container);
         self::$_current_instance = $this;
         $this->_applyDefaults();
@@ -88,12 +88,12 @@ class Datatable
      */
     protected function _applyDefaults()
     {
-        if (isset($this->_config['all']))
-        {
+        if (isset($this->_config['all'])) {
             $this->_has_action = $this->_config['all']['action'];
-            $this->_search     = $this->_config['all']['search'] == 'none' ? Datatable::NO_SEARCH :
-                                    $this->_config['all']['search'] == 'both' ? Datatable::GLOBAL_SEARCH | Datatable::PER_FIELD_SEARCH :
-                                        $this->_config['all']['search'] == 'global' ? Datatable::GLOBAL_SEARCH : Datatable::PER_FIELD_SEARCH;
+            $this->_search = $this->_config['all']['search'] == 'none' ? Datatable::NO_SEARCH :
+                $this->_config['all']['search'] == 'both' ? Datatable::GLOBAL_SEARCH | Datatable::PER_FIELD_SEARCH :
+                    $this->_config['all']['search'] == 'global' ? Datatable::GLOBAL_SEARCH : Datatable::PER_FIELD_SEARCH;
+            $this->_queryBuilder->setSearch($this->_search);
         }
     }
 
@@ -129,42 +129,43 @@ class Datatable
      */
     public function execute($hydration_mode = Query::HYDRATE_ARRAY)
     {
-        $request       = $this->_request;
+        $request = $this->_request;
         $iTotalRecords = $this->_queryBuilder->getTotalRecords();
-        $data          = $this->_queryBuilder->getData($hydration_mode);
-        $id_index      = array_search('_identifier_', array_keys($this->getFields()));
-        $ids           = array();
-        array_walk($data, function($val, $key) use ($data, $id_index, &$ids) {
-                    $ids[$key] = $val[$id_index];
-                });
-        if (!is_null($this->_fixed_data))
-        {
+        $data = $this->_queryBuilder->getData($hydration_mode);
+        $id_index = array_search('_identifier_', array_keys($this->getFields()));
+        $ids = array();
+        array_walk(
+            $data,
+            function ($val, $key) use ($data, $id_index, &$ids) {
+                $ids[$key] = $val[$id_index];
+            }
+        );
+        if (!is_null($this->_fixed_data)) {
             $this->_fixed_data = array_reverse($this->_fixed_data);
-            foreach ($this->_fixed_data as $item)
-            {
+            foreach ($this->_fixed_data as $item) {
                 array_unshift($data, $item);
             }
         }
-        if (!is_null($this->_renderer))
-        {
+        if (!is_null($this->_renderer)) {
             array_walk($data, $this->_renderer);
         }
-        if (!is_null($this->_renderer_obj))
-        {
+        if (!is_null($this->_renderer_obj)) {
             $this->_renderer_obj->applyTo($data);
         }
-        if (!empty($this->_multiple))
-        {
-            array_walk($data, function($val, $key) use(&$data, $ids) {
-                        array_unshift($val, "<input type='checkbox' name='dataTables[actions][]' value='{$ids[$key]}' />");
-                        $data[$key] = $val;
-                    });
+        if (!empty($this->_multiple)) {
+            array_walk(
+                $data,
+                function ($val, $key) use (&$data, $ids) {
+                    array_unshift($val, "<input type='checkbox' name='dataTables[actions][]' value='{$ids[$key]}' />");
+                    $data[$key] = $val;
+                }
+            );
         }
         $output = array(
-            "sEcho"                => intval($request->get('sEcho')),
-            "iTotalRecords"        => $iTotalRecords,
+            "sEcho" => intval($request->get('sEcho')),
+            "iTotalRecords" => $iTotalRecords,
             "iTotalDisplayRecords" => $iTotalRecords,
-            "aaData"               => $data
+            "aaData" => $data
         );
         return new Response(json_encode($output));
     }
@@ -179,18 +180,14 @@ class Datatable
      */
     public static function getInstance($id)
     {
-        $instance = NULL;
-        if (array_key_exists($id, self::$_instances))
-        {
+        $instance = null;
+        if (array_key_exists($id, self::$_instances)) {
             $instance = self::$_instances[$id];
-        }
-        else
-        {
+        } else {
             $instance = self::$_current_instance;
         }
 
-        if (is_null($instance))
-        {
+        if (is_null($instance)) {
             throw new \Exception('No instance found for datatable, you should set a datatable id in your
             action with "setDatatableId" using the id from your view ');
         }
@@ -449,13 +446,11 @@ class Datatable
     public function setRenderers(array $renderers)
     {
         $this->_renderers = $renderers;
-        if (!empty($this->_renderers))
-        {
+        if (!empty($this->_renderers)) {
             $this->_renderer_obj = new Renderer($this->_container, $this->_renderers, $this->getFields());
         }
         $actions_index = array_search('_identifier_', array_keys($this->getFields()));
-        if ($actions_index != FALSE && isset($renderers[$actions_index]))
-        {
+        if ($actions_index != false && isset($renderers[$actions_index])) {
             $this->_has_renderer_action = true;
         }
         return $this;
@@ -465,7 +460,7 @@ class Datatable
      * set query where
      *
      * @param string $where
-     * @param array  $params
+     * @param array $params
      *
      * @return Datatable
      */
@@ -482,7 +477,8 @@ class Datatable
      *
      * @return Datatable
      */
-    public function setGroupBy($groupby) {
+    public function setGroupBy($groupby)
+    {
         $this->_queryBuilder->setGroupBy($groupby);
         return $this;
     }
@@ -509,12 +505,9 @@ class Datatable
      */
     public function setDatatableId($id)
     {
-        if (!array_key_exists($id, self::$_instances))
-        {
+        if (!array_key_exists($id, self::$_instances)) {
             self::$_instances[$id] = $this;
-        }
-        else
-        {
+        } else {
             throw new \Exception('Identifer already exists');
         }
         return $this;

@@ -79,16 +79,37 @@ class DoctrineBuilder implements QueryInterface
         $request       = $this->request;
         $search_fields = array_values($this->fields);
         if ($this->search == \Lugaidster\DatatableBundle\Util\Datatable::PER_FIELD_SEARCH) {
+            $aggregateFields = [];
+
             foreach ($search_fields as $i => $search_field) {
+                if(preg_match('/(min|max|count|sum)[ ]*\\(/i', trim($search_field))) {
+                    $aggregateFields[] = $search_field;
+                    continue;
+                }
+
                 $search_param = $request->get("sSearch_{$i}");
 
                 if ($request->get("sSearch_{$i}") !== false && !empty($search_param)) {
                     $queryBuilder->andWhere(" $search_field like '%{$request->get("sSearch_{$i}")}%' ");
                 }
             }
+
+            if(count($aggregateFields) > 0) {
+                // TODO: Add aggregate functionality
+            }
         } elseif ($this->search == \Lugaidster\DatatableBundle\Util\Datatable::GLOBAL_SEARCH) {
+
             $orExpr = $queryBuilder->expr()->orX();
+            $aggregateFields = [];
             foreach ($search_fields as $i => $search_field) {
+                if(preg_match('/(min|max|count|sum)[ ]*\\(/i', trim($search_field))) {
+                    $aggregateFields[] = $search_field;
+                    continue;
+                }
+
+                $search_field = explode(' as ', $search_field);
+                $search_field = current($search_field);
+
                 $isSearchable = $request->get("bSearchable_$i") == 'true';
                 if(!$isSearchable) continue;
 
@@ -101,6 +122,11 @@ class DoctrineBuilder implements QueryInterface
                     $orExpr->add(" $search_field like '%{$global_search}%' ");
                 }
             }
+
+            if(count($aggregateFields) > 0) {
+                // TODO: Add aggregate functionality
+            }
+
             if($orExpr->count() > 0) {
                 $queryBuilder->andWhere($orExpr);
             }
