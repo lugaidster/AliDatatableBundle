@@ -130,4 +130,8 @@ interface QueryInterface
      * @return Datatable
      */
     function addJoin($join_field, $alias, $type = Join::INNER_JOIN, $cond = '');
+
+    function hasMultiple();
+
+    function setHasMultiple($val);
 }

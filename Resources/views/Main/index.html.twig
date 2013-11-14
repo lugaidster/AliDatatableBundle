@@ -124,6 +124,9 @@
         "aoColumnDefs": $aoColumnDefs,
         "bSort": true,
         "bFilter": {% if search_global or search_local %} true {% else %} false {% endif %},
+        {% if sort_column %}
+        "aaSorting": [[ {{ sort_column }}, '{{ sort_direction }}']],
+        {% endif %}
         "oLanguage": {
             "sProcessing":     '{{ 'ali.common.sProcessing' | trans() }}',
             "sLengthMenu":     '{{ 'ali.common.sLengthMenu' | trans() }}',

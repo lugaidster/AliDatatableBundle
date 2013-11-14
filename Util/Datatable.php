@@ -343,8 +343,8 @@ class Datatable
     /**
      * set order
      *
-     * @param type $order_field
-     * @param type $order_type
+     * @param string $order_field
+     * @param string $order_type
      *
      * @return Datatable
      */
@@ -505,7 +505,6 @@ class Datatable
      * set datatable identifier
      *
      * @param string $id
-     *
      * @return Datatable
      */
     public function setDatatableId($id)
@@ -545,7 +544,13 @@ class Datatable
     public function setMultiple(array $multiple)
     {
         $this->_multiple = $multiple;
+        $this->_queryBuilder->setHasMultiple(is_array($multiple) && count($multiple) > 0);
         return $this;
+    }
+
+    public function hasMultiple()
+    {
+        return is_array($this->_multiple) && count($this->_multiple) > 0;
     }
 
     /**

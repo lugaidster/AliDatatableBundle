@@ -53,6 +53,9 @@ class DoctrineBuilder implements QueryInterface
     /** @var boolean */
     protected $search = FALSE;
 
+    /** @var boolean */
+    protected $hasMultiple = FALSE;
+
     /**
      * class constructor
      *
@@ -170,7 +173,13 @@ class DoctrineBuilder implements QueryInterface
         $dql_fields = array_values($this->fields);
         if ($request->get('iSortCol_0') != null)
         {
-            $order_field = current(explode(' as ', $dql_fields[$request->get('iSortCol_0')]));
+            $sortCol = $request->get('iSortCol_0') + ($this->hasMultiple() ? -1 : 0);
+
+            //var_dump(current(explode(' as ', $dql_fields[$sortCol]))); die;
+            $order_field = $sortCol < 0 ? null : explode(' as ', $dql_fields[$sortCol]);
+
+            if(is_array($order_field))
+                $order_field = end($order_field);
         }
         else
         {
@@ -179,6 +188,7 @@ class DoctrineBuilder implements QueryInterface
         $qb = clone $this->queryBuilder;
         if (!is_null($order_field))
         {
+            //var_dump($order_field); die;
             $qb->orderBy($order_field, $request->get('sSortDir_0', 'asc'));
         }
         else
@@ -208,6 +218,7 @@ class DoctrineBuilder implements QueryInterface
         {
             $query->setMaxResults($iDisplayLength)->setFirstResult($request->get('iDisplayStart'));
         }
+        //var_dump($query->getDQL()); die;
         $items                = $query->getResult($hydration_mode);
         $iTotalDisplayRecords = (string) count($items);
         $data                 = array();
@@ -404,6 +415,17 @@ class DoctrineBuilder implements QueryInterface
     public function setDoctrineQueryBuilder(\Doctrine\ORM\QueryBuilder $queryBuilder)
     {
         $this->queryBuilder = $queryBuilder;
+        return $this;
+    }
+
+    public function hasMultiple()
+    {
+        return $this->hasMultiple;
+    }
+
+    public function setHasMultiple($val)
+    {
+        $this->hasMultiple = $val;
         return $this;
     }
 }
