@@ -124,7 +124,7 @@
         "aoColumnDefs": $aoColumnDefs,
         "bSort": true,
         "bFilter": {% if search_global or search_local %} true {% else %} false {% endif %},
-        {% if sort_column %}
+        {% if sort_column is defined and sort_column %}
         "aaSorting": [[ {{ sort_column }}, '{{ sort_direction }}']],
         {% endif %}
         "oLanguage": {
