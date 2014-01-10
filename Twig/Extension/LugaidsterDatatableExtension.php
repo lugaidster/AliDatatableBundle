@@ -102,6 +102,7 @@ class LugaidsterDatatableExtension extends \Twig_Extension
     {
         return $this->createFormBuilder(array('id' => $id))
             ->add('id', 'hidden')
+            ->setMethod('delete')
             ->getForm();
     }
 

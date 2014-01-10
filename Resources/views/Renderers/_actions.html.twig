@@ -1,5 +1,6 @@
 {% if delete_route is defined %}
 {% set delete_form = {
+    '_method': 'delete',
     'form': {
         'id': dt_id,
         '_token': delete_token
