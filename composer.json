@@ -13,14 +13,13 @@
         }
     ],
     "require": {
-        "php": ">=5.3.0",
+        "php": ">=5.4.0",
 	"twig/twig": ">=1.8,<2.0-dev",
         "doctrine/common": ">=2.1,<2.4.x-dev"
     },
-    "target-dir": "Lugaidster/DatatableBundle",
     "autoload": {
-        "psr-0": {
-            "Lugaidster\\DatatableBundle": ""
+        "psr-4": {
+            "Lugaidster\\DatatableBundle\\": ""
         }
     }
 }
